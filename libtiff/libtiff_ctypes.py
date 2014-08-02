@@ -25,7 +25,7 @@ if os.name=='nt':
         lib = os.path.abspath(sys._MEIPASS) + r'\libtiff.dll'
     else:
         lib = os.path.abspath(os.path.dirname(__file__)) + r'\libtiff.dll'
-    print lib
+
     if lib is None:
         # try default installation path:
         lib = r'C:\Program Files\GnuWin32\bin\libtiff3.dll'
@@ -608,7 +608,7 @@ class TIFF(ctypes.c_void_p):
         self.SetField(TIFFTAG_SAMPLEFORMAT,1)
         self.SetField(TIFFTAG_COMPRESSION,COMPRESSION_LZW)
         
-    def write_tile(self,tile_arr,x, y,tile_num):
+    def write_tile(self,tile_arr,x, y):
         status = 0
         tile_data = np.ascontiguousarray(tile_arr)
         r = libtiff.TIFFWriteTile(self, tile_data[0,:,:].ctypes.data, x, y, 0, 0)
