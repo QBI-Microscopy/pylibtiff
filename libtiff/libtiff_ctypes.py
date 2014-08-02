@@ -607,13 +607,6 @@ class TIFF(ctypes.c_void_p):
         self.SetField(TIFFTAG_BITSPERSAMPLE, 8)
         self.SetField(TIFFTAG_SAMPLEFORMAT,1)
         self.SetField(TIFFTAG_COMPRESSION,COMPRESSION_LZW)
-        
-    def write_tile(self,tile_arr,x, y):
-        status = 0
-        tile_data = np.ascontiguousarray(tile_arr)
-        r = libtiff.TIFFWriteTile(self, tile_data[0,:,:].ctypes.data, x, y, 0, 0)
-        status = status + r.value
-        return status
 
     def write_tiles(self, arr):
         num_tcols = self.GetField("TileWidth")
@@ -727,6 +720,21 @@ class TIFF(ctypes.c_void_p):
                             full_image[z,y:y+num_trows, x:x+num_tcols] = tmp_tile[:,:]
 
         return full_image
+    
+    def write_tile(self,tile_arr,x, y):
+        status = 0
+        tile_data = np.ascontiguousarray(tile_arr)
+        r = libtiff.TIFFWriteTile(self, tile_data[0,:,:].ctypes.data, x, y, 0, 0)
+        status = status + r.value
+        return status
+    
+    def read_tile(self,x, y, w, h, tile_width, tile_height):
+        tmp_tile = np.zeros((tile_height,tile_width), dtype=dtype)
+        tmp_tile = np.ascontiguousarray(tmp_tile)
+        r = libtiff.TIFFReadTile(self, tmp_tile.ctypes.data, x, y, 0, 0)
+        if not r:
+            raise ValueError("Could not read tile x:%d,y:%d,z:%d from file" % (x,y,z))
+        return tmp_tile[:h,:w]
     
     def set_description(self,description):
         self.SetField(TIFFTAG_IMAGEDESCRIPTION,description)
