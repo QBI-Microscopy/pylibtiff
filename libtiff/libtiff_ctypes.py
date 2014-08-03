@@ -732,8 +732,8 @@ class TIFF(ctypes.c_void_p):
         tmp_tile = np.zeros((tile_height,tile_width), dtype=np.uint8)
         tmp_tile = np.ascontiguousarray(tmp_tile)
         r = libtiff.TIFFReadTile(self, tmp_tile.ctypes.data, x, y, c, 0)
-        if not r:
-            raise ValueError("Could not read tile x:%d,y:%d,z:%d from file" % (x,y,c))
+#         if not r:
+#             raise ValueError("Could not read tile x:%d,y:%d,z:%d from file" % (x,y,c))
         return tmp_tile[:h,:w]
     
     def set_description(self,description):
