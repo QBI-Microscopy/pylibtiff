@@ -729,7 +729,7 @@ class TIFF(ctypes.c_void_p):
         return status
     
     def read_tile(self,x, y, w, h, tile_width, tile_height):
-        tmp_tile = np.zeros((tile_height,tile_width), dtype=dtype)
+        tmp_tile = np.zeros((tile_height,tile_width), dtype=np.uint8)
         tmp_tile = np.ascontiguousarray(tmp_tile)
         r = libtiff.TIFFReadTile(self, tmp_tile.ctypes.data, x, y, 0, 0)
         if not r:
