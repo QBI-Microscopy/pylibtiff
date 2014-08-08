@@ -1,4 +1,4 @@
-In order to compile this module I performed the following steps:
+In order to compile this module in Windows7 I performed the following steps:
 
 1 - Copy this file:
 	
@@ -10,7 +10,7 @@ C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin\amd64\vcvarsamd64.bat
 
 2 - Edit the file msvc9compiler.py inside of directory C:\Python27\Lib\distutils\msvc9compiler.py
 
-After the line 651 approximately, find this line: – ld_args.append(‘/MANIFESTFILE:’ + temp_manifest)
+After the line 651 approximately, find this line: â€“ ld_args.append(â€˜/MANIFESTFILE:â€™ + temp_manifest)
 Add the following line after the above line:
 	
 ld_args.append('/MANIFEST')
