@@ -594,12 +594,12 @@ class TIFF(ctypes.c_void_p):
         else:
             raise NotImplementedError (`shape`)
 
-    def tile_image_params(self,sizeX,sizeY,sizeC,tileWidth,tileHeight,compression):
+    def tile_image_params(self,sizeX,sizeY,sizeZ,tileWidth,tileHeight,compression):
         self.SetField(TIFFTAG_TILEWIDTH,tileWidth)
         self.SetField(TIFFTAG_TILELENGTH,tileHeight)
         self.SetField(TIFFTAG_IMAGELENGTH,sizeY)
         self.SetField(TIFFTAG_IMAGEWIDTH,sizeX)
-        self.SetField(TIFFTAG_IMAGEDEPTH,sizeC)
+        self.SetField(TIFFTAG_IMAGEDEPTH,sizeZ)
         #self.SetField(TIFFTAG_SAMPLESPERPIXEL, 1)
         self.SetField(TIFFTAG_ORIENTATION,1)
         self.SetField(TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK)
