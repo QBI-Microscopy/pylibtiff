@@ -674,18 +674,27 @@ class TIFF(ctypes.c_void_p):
         num_tcols = self.GetField("TileWidth")
         if num_tcols is None:
             raise ValueError("TIFFTAG_TILEWIDTH must be set to write tiles")
+        print "num_tcols:",num_tcols
         num_trows = self.GetField("TileLength")
         if num_trows is None:
             num_trows = 1
+        print "num_trows:",num_trows
         num_icols = self.GetField("ImageWidth")
         if num_icols is None:
             raise ValueError("TIFFTAG_TILEWIDTH must be set to write tiles")
+        print "num_icols:",num_icols
         num_irows = self.GetField("ImageLength")
         if num_irows is None:
             num_irows = 1
+        print "num_irows:",num_irows
         num_idepth = self.GetField("ImageDepth")
         if num_idepth is None:
             num_idepth = 1
+        print "num_idepth:",num_idepth
+
+        bits = self.GetField('BitsPerSample')
+        sample_format = self.GetField('SampleFormat')
+        dtype = self.get_numpy_type(bits, sample_format)
 
         if num_idepth == 1 and num_irows == 1:
             # 1D
@@ -701,7 +710,9 @@ class TIFF(ctypes.c_void_p):
         tmp_tile = np.ascontiguousarray(tmp_tile)
         for z in range(0, num_idepth):
             for y in range(0, num_irows, num_trows):
+                print "y:",y
                 for x in range(0, num_icols, num_tcols):
+                    print "x:",x
                     r = libtiff.TIFFReadTile(self, tmp_tile.ctypes.data, x, y, z, 0)
                     if not r:
                         raise ValueError("Could not read tile x:%d,y:%d,z:%d from file" % (x,y,z))
@@ -731,13 +742,45 @@ class TIFF(ctypes.c_void_p):
         status = status + r.value
         return status
     
-    def read_tile(self,x, y, z, w, h, tile_width, tile_height):
-        tmp_tile = np.zeros((tile_height,tile_width), dtype=np.uint8)
+    def read_tile(self, x, y, z, dtype=np.uint8):
+        num_tcols = self.GetField("TileWidth")
+        if num_tcols is None:
+            raise ValueError("TIFFTAG_TILEWIDTH must be set to write tiles")
+        num_trows = self.GetField("TileLength")
+        if num_trows is None:
+            num_trows = 1
+        num_icols = self.GetField("ImageWidth")
+        if num_icols is None:
+            raise ValueError("TIFFTAG_TILEWIDTH must be set to write tiles")
+        num_irows = self.GetField("ImageLength")
+        if num_irows is None:
+            num_irows = 1
+        num_idepth = self.GetField("ImageDepth")
+        if num_idepth is None:
+            num_idepth = 1
+
+        tmp_tile = np.zeros((num_trows,num_tcols), dtype=dtype)
         tmp_tile = np.ascontiguousarray(tmp_tile)
+
         r = libtiff.TIFFReadTile(self, tmp_tile.ctypes.data, x, y, z, 0)
         if not r:
-            raise ValueError("Could not read tile x:%d,y:%d,z:%d from file" % (x,y,z))
-        return tmp_tile[:h,:w]
+	    raise ValueError("Could not read tile x:%d,y:%d,z:%d from file" % (x,y,z))
+
+        if ((y + num_trows) > num_irows) or ((x + num_tcols) > num_icols):
+	    # We only need part of the tile because we are on the edge
+	    if num_idepth == 1 and num_irows == 1:
+	        return tmp_tile[0,:num_icols-x]
+	    elif num_idepth == 1:
+	        return tmp_tile[:num_irows-y,:num_icols-x]
+	    else:
+	        return tmp_tile[:num_irows-y,:num_icols-x]
+        else:
+	    if num_idepth == 1 and num_irows == 1:
+	        return tmp_tile[0,:]
+	    elif num_idepth == 1:
+	        return tmp_tile[:,:]
+	    else:
+	        return tmp_tile[:,:]
     
     def set_description(self,description):
         self.SetField(TIFFTAG_IMAGEDESCRIPTION,description)
@@ -1395,8 +1438,14 @@ def _test_custom_tags():
     _tag_write()
     _tag_read()
 
-def _test_tile_write():
-    a = TIFF.open("C:\\Users\\uqdmatt2\\Documents\\Python\\pylibtiff\\libtiff_test_tile_write.tiff", "w")
+def _test_tile_write(filename=None):
+    import sys
+    if filename is None:
+        if len(sys.argv) != 2:
+            print "Run `libtiff.py <filename>` for testing."
+            return
+        filename = sys.argv[1]
+    a = TIFF.open(filename, "w")
 
     # 1D Arrays (doesn't make much sense to tile)
     assert a.SetField("ImageWidth", 3000)==1,"could not set ImageWidth tag" #1D,2D,3D
@@ -1655,7 +1704,7 @@ def _test_copy():
 if __name__=='__main__':
 #    _test_custom_tags()
     _test_tile_write()
-    #_test_tile_read()
+    _test_tile_read()
     #_test_tags_write()
     #_test_tags_read()
     #_test_write_float()
